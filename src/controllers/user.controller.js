@@ -10,7 +10,7 @@ import jwt from "jsonwebtoken"
 const generateAccessAndRefreshToken = async(userId)=>
 {
     try {
-        const user = await user.findById(userId)
+        const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()  
         
@@ -121,6 +121,8 @@ const loginUser = asyncHandler( async (req, res) =>{
 
     const {email, username, password} = req.body
     console.log(email);
+    console.log("Body:", req.body);
+    console.log("Password:", password);
     
 
     if (!(username || email)) {
@@ -136,6 +138,9 @@ const loginUser = asyncHandler( async (req, res) =>{
     }
 
     const isPasswordValid = await user.isPasswordCorrect(password)
+    console.log("Password Type:", typeof password);
+    console.log("DB Password:", user.password);
+    console.log("DB Password Type:", typeof user.password);
 
     if (!isPasswordValid) {
         throw new ApiError(401,"Invalid user credentials");
@@ -170,8 +175,8 @@ const logoutUser = asyncHandler(async (req, res) => {
    await User.findByIdAndUpdate(
     req.user._id,
     {
-        $set: {
-            refreshToken: undefined
+        $unset: {
+            refreshToken: 1
         }
     },
     {
@@ -289,7 +294,7 @@ const updateAccountDatails = asyncHandler(async(req, res) =>{
     .json(new ApiResponse (200, user, "Account details updated successfully"))
 })
 
-const upadateUserAvatar = asyncHandler(async(req, res) =>{
+const updateUserAvatar = asyncHandler(async(req, res) =>{
     const avatarLocalPath = req.file?.path
 
     if (!avatarLocalPath) {
@@ -320,7 +325,7 @@ const upadateUserAvatar = asyncHandler(async(req, res) =>{
 
 })
 
-const upadateUserCoveImage = asyncHandler(async(req, res) =>{
+const updateUserCoverImage = asyncHandler(async(req, res) =>{
     const coverImageLocalPath = req.file?.path
 
     if (!coverImageLocalPath) {
@@ -490,8 +495,8 @@ export {
     changeCurrentPassword,
     getCurrentUser,
     updateAccountDatails,
-    upadateUserAvatar,
-    upadateUserCoveImage,
+    updateUserAvatar,
+    updateUserCoverImage,
     getUserChannelProfile,
     getWatchHistory
 }
