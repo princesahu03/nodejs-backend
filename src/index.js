@@ -4,7 +4,7 @@ import dotenv from "dotenv"
 /* import mongoose, { connect } from "mongoose";
 import {DB_NAME} from "./cosntants" */
 import connectDB from "./db/index.js";
-import { app } from "./app.js";
+import  app  from "./app.js";
 
 /* import connectDB from "./db"; */
 
