@@ -38,9 +38,9 @@ app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/tweets", tweetRouter);
 app.use("/api/v1/videos", videoRouter);
-app.use("/api/v1/healthchecks", healthcheckRouter);
+app.use("/api/v1/healthcheck", healthcheckRouter);
 app.use("/api/v1/playlists", playlistRouter);
-app.use("/api/v1/dashboards", dashboardRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
 
 
 export default app;
