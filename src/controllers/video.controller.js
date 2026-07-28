@@ -128,19 +128,15 @@ const publishAVideo = asyncHandler(async (req, res) => {
     }
 
     const video = await Video.create({
+
         title,
         description,
         duration: videoFile.duration,
-        videoFile: {
-            url: videoFile.url,
-            public_id: videoFile.public_id
-        },
-        thumbnail: {
-            url: thumbnail.url,
-            public_id: thumbnail.public_id
-        },
+        videoFile: videoFile.url,
+        thumbnail: thumbnail.url,
         owner: req.user?._id,
         isPublished: false
+    
     });
 
     const videoUploaded = await Video.findById(video._id);
@@ -295,7 +291,7 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
 
     if (!(title && description)) {
-        throw new ApiError(400, "title and description are required");
+        throw new ApiError(400, "Title and description are required");
     }
 
     const video = await Video.findById(videoId);
@@ -304,26 +300,23 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "No video found");
     }
 
-    if (video?.owner.toString() !== req.user?._id.toString()) {
+    if (video.owner.toString() !== req.user._id.toString()) {
         throw new ApiError(
             400,
             "You can't edit this video as you are not the owner"
         );
     }
 
-    //deleting old thumbnail and updating with new one
-    const thumbnailToDelete = video.thumbnail.public_id;
-
     const thumbnailLocalPath = req.file?.path;
 
     if (!thumbnailLocalPath) {
-        throw new ApiError(400, "thumbnail is required");
+        throw new ApiError(400, "Thumbnail is required");
     }
 
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
 
     if (!thumbnail) {
-        throw new ApiError(400, "thumbnail not found");
+        throw new ApiError(400, "Thumbnail upload failed");
     }
 
     const updatedVideo = await Video.findByIdAndUpdate(
@@ -332,26 +325,25 @@ const updateVideo = asyncHandler(async (req, res) => {
             $set: {
                 title,
                 description,
-                thumbnail: {
-                    public_id: thumbnail.public_id,
-                    url: thumbnail.url
-                }
+                thumbnail: thumbnail.url // ✅ Only URL because schema type is String
             }
         },
-        { new: true }
+        {
+            new: true
+        }
     );
 
     if (!updatedVideo) {
-        throw new ApiError(500, "Failed to update video please try again");
+        throw new ApiError(500, "Failed to update video, please try again");
     }
 
-    if (updatedVideo) {
-        await deleteOnCloudinary(thumbnailToDelete);
-    }
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, updatedVideo, "Video updated successfully"));
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            updatedVideo,
+            "Video updated successfully"
+        )
+    );
 });
 
 // delete video

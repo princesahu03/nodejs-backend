@@ -1,11 +1,10 @@
-import { json } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
-import {User} from "../models/user.model.js"
+import { User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
-
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async(userId)=>
 {
@@ -373,21 +372,21 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         {
             $lookup:{
                 from: "subscriptions",
-                localfield: "_id",
-                foreignfield: "channel",
-                as: "subcribers"
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers"
             }
         },
         {
             $lookup:{
                 from: "subscriptions",
-                localfield: "_id",
-                foreignfield: "subsciber",
+                localField: "_id",
+                foreignField: "subscriber",
                 as: "subscribedTo"
             }
         },
         {
-            addFields:{
+            $addFields:{
                 subscribersCount: 
                 {
                     $size: "$subscribers"
@@ -429,15 +428,15 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     )
 })
 
-const getWatchHistory = asyncHandler(async (req, res) => {
+const getWatchHistory = asyncHandler(async(req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user?._id)
+                _id: new mongoose.Types.ObjectId(req.user._id)
             }
         },
         {
-            $lookup:{
+            $lookup: {
                 from: "videos",
                 localField: "watchHistory",
                 foreignField: "_id",
@@ -446,8 +445,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                     {
                         $lookup: {
                             from: "users",
-                            localfield: "owner",
-                            foreignfield: "_id",
+                            localField: "owner",
+                            foreignField: "_id",
                             as: "owner",
                             pipeline: [
                                 {
@@ -461,12 +460,10 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                         }
                     },
                     {
-                        $addFields: {
-                            owner: {
+                        $addFields:{
+                            owner:{
                                 $first: "$owner"
                             }
-                            
-                            
                         }
                     }
                 ]
@@ -479,7 +476,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     .json(
         new ApiResponse(
             200,
-            user[0].wachtHistory,
+            user[0].watchHistory,
             "Watch history fetched successfully"
         )
     )
