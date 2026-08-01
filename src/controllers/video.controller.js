@@ -215,7 +215,7 @@ const getVideoById = asyncHandler(async (req, res) => {
                     {
                         $project: {
                             username: 1,
-                            "avatar.url": 1,
+                            avatar: 1,
                             subscribersCount: 1,
                             isSubscribed: 1
                         }
@@ -242,7 +242,7 @@ const getVideoById = asyncHandler(async (req, res) => {
         },
         {
             $project: {
-                "videoFile.url": 1,
+                videoFile: 1,
                 title: 1,
                 description: 1,
                 views: 1,
@@ -256,7 +256,7 @@ const getVideoById = asyncHandler(async (req, res) => {
         }
     ]);
 
-    if (!video) {
+    if (!video.length) {
         throw new ApiError(500, "failed to fetch video");
     }
 
@@ -373,8 +373,8 @@ const deleteVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Failed to delete the video please try again");
     }
 
-    await deleteOnCloudinary(video.thumbnail.public_id); // video model has thumbnail public_id stored in it->check videoModel
-    await deleteOnCloudinary(video.videoFile.public_id, "video"); // specify video while deleting video
+    await deleteOnCloudinary(video.thumbnail); // video model has thumbnail public_id stored in it->check videoModel
+    await deleteOnCloudinary(video.videoFile, "video"); // specify video while deleting video
 
     // delete video likes
     await Like.deleteMany({
